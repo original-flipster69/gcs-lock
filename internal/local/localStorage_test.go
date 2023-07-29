@@ -60,3 +60,7 @@ func TestUnlock(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteLock(t *testing.T) {
+
+}
