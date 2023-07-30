@@ -2,6 +2,7 @@ package local
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"os"
 )
 
@@ -21,16 +22,16 @@ func (ls *LocalStorage) LockFileExists() bool {
 func (ls *LocalStorage) Lock() {
 	f, err := os.OpenFile(ls.lockFilePath, os.O_EXCL|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		fmt.Printf("error while writing: %v", err)
+		log.Errorf("error while writing: %v", err)
 		return
 	}
 	defer func() {
 		if err := f.Close(); err != nil {
-			fmt.Printf("Lock(): %v", err)
+			log.Errorf("Lock(): %v", err)
 		}
 	}()
 	if _, err := f.Write([]byte("wow")); err != nil {
-		fmt.Printf("error while writing: %v", err)
+		log.Errorf("error while writing: %v", err)
 		return
 	}
 	ls.lockAcquired = true
@@ -51,11 +52,8 @@ func (ls *LocalStorage) HasLock() bool {
 func (ls *LocalStorage) DeleteLock() {
 	err := os.Remove(ls.lockFilePath)
 	if err != nil {
-		fmt.Printf("DeleteLock(): %v", err)
+		log.Errorf("DeleteLock(): %v", err)
 	}
-}
-
-func (ls *LocalStorage) Unlock() {
 	ls.lockAcquired = false
 }
 

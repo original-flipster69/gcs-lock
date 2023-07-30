@@ -1,6 +1,6 @@
 package storage
 
-type storage interface {
+type Storage interface {
 	LockFileExists() bool
 
 	Lock()
@@ -10,6 +10,4 @@ type storage interface {
 	HasLock() bool
 
 	DeleteLock()
-
-	Unlock()
 }

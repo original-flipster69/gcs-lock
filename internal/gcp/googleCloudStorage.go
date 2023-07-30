@@ -4,8 +4,10 @@ import (
 	"cloud.google.com/go/storage"
 	"context"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"strings"
+	"time"
 )
 
 type GoogleCloudStorage struct {
@@ -37,17 +39,15 @@ func (gs *GoogleCloudStorage) Lock() {
 	ctx := context.Background()
 	obj := gs.objHandle(ctx)
 	w := obj.If(storage.Conditions{DoesNotExist: true}).NewWriter(ctx)
-	if _, err := fmt.Fprint(w, "yui yui yui"); err != nil {
-		fmt.Printf("error while writing: %v", err)
+	if _, err := fmt.Fprint(w, time.Now().Format(time.RFC3339)); err != nil {
+		log.Errorf("error while writing: %v", err)
 		return
 	}
 	if err := w.Close(); err != nil {
-		fmt.Printf("could not acquire lock: %v", err)
+		log.Debugf("could not acquire lock: %v", err)
 		return
 	}
 	gs.lockAquired = true
-	fmt.Println("successfully acquired lock")
-
 }
 
 func (gs *GoogleCloudStorage) GetLockContent() (string, error) {
@@ -59,7 +59,7 @@ func (gs *GoogleCloudStorage) GetLockContent() (string, error) {
 	}
 	defer func() {
 		if err := r.Close(); err != nil {
-			fmt.Printf("getLockContent(): %v", err)
+			log.Errorf("getLockContent(): %v", err)
 		}
 	}()
 	buf := new(strings.Builder)
@@ -77,14 +77,11 @@ func (gs *GoogleCloudStorage) DeleteLock() {
 	ctx := context.Background()
 	obj := gs.objHandle(ctx)
 	if err := obj.Delete(ctx); err != nil {
-		fmt.Printf("DeleteLock(): %v", err)
+		log.Errorf("DeleteLock(): %v", err)
 	}
-}
-
-func (gs *GoogleCloudStorage) Unlock() {
 	gs.lockAquired = false
 }
 
-func New(bucket string, lockFile string) GoogleCloudStorage {
+func NewGoogleCloudStorage(bucket string, lockFile string) GoogleCloudStorage {
 	return GoogleCloudStorage{false, bucket, lockFile}
 }

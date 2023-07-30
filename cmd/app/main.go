@@ -1,33 +1,34 @@
 package main
 
 import (
-	"cloud-lock-go/internal/local"
+	cloudstorage "cloud-lock-go/internal/gcp"
+	lock "cloud-lock-go/pkg"
 	"fmt"
+	"sync"
+	"time"
 )
 
 func main() {
 
-	go newStorageDoLock()
-	newStorageDoLock()
+	var wg sync.WaitGroup
+	wg.Add(5)
+
+	for i := 0; i < 5; i++ {
+		go newStorageDoLock(&wg)
+	}
+
+	wg.Wait()
+	fmt.Println("done")
 }
 
-func newStorageDoLock() {
-	//gs := cloudstorage.New("tyler-lockett", "leader.txt")
-	gs := local.NewLocalStorage("leader.txt")
+func newStorageDoLock(wg *sync.WaitGroup) {
+	defer wg.Done()
+	gs := cloudstorage.NewGoogleCloudStorage("tyler-lockett", "leader.txt")
+	//gs := local.NewLocalStorage("leader.txt")
 
-	if gs.LockFileExists() {
-		fmt.Println("already locked... nothing to do here")
-		return
+	if leader := lock.Lock(&gs); leader {
+		fmt.Println("doing all se funky stuff")
+		time.Sleep(5 * time.Second)
+		lock.Unlock(&gs)
 	}
-	gs.Lock()
-
-	content, err := gs.GetLockContent()
-	if err != nil {
-		fmt.Printf("error getting lock content: %v", err)
-		return
-	}
-	fmt.Println(content)
-
-	gs.DeleteLock()
-	gs.Unlock()
 }
