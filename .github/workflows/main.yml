@@ -44,8 +44,8 @@ jobs:
       run: go vet ./cmd/app 
 
     # Run testing on the code
-    # - name: Run testing
-    #   run: cd test && go test -v     
+    - name: Run testing
+      run: go test ./... -v
     
   opensource-security:
     name: Checking Dependency Security with Snyk

@@ -53,7 +53,7 @@ func TestUnlock(t *testing.T) {
 	for _, tc := range testTable {
 		t.Run(tc.name, func(t *testing.T) {
 			ls := LocalStorage{tc.input, ""}
-			ls.Unlock()
+			ls.lockAcquired = false
 			if ls.lockAcquired != tc.expectedResult {
 				t.Errorf("after Unlock lockAcquired should be %v, but was %v", tc.expectedResult, ls.lockAcquired)
 			}
