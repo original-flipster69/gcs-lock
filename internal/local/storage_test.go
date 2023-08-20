@@ -28,7 +28,7 @@ func TestHasLock(t *testing.T) {
 
 	for _, tc := range testTable {
 		t.Run(tc.name, func(t *testing.T) {
-			ls := LocalStorage{tc.input, ""}
+			ls := Storage{tc.input, ""}
 			if hasLock := ls.HasLock(); hasLock != tc.expectedResult {
 				t.Errorf("HasLock should result in %v, but was %v", tc.expectedResult, hasLock)
 			}
@@ -52,7 +52,7 @@ func TestUnlock(t *testing.T) {
 
 	for _, tc := range testTable {
 		t.Run(tc.name, func(t *testing.T) {
-			ls := LocalStorage{tc.input, ""}
+			ls := Storage{tc.input, ""}
 			ls.lockAcquired = false
 			if ls.lockAcquired != tc.expectedResult {
 				t.Errorf("after Unlock lockAcquired should be %v, but was %v", tc.expectedResult, ls.lockAcquired)

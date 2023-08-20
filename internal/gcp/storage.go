@@ -1,4 +1,4 @@
-package cloudstorage
+package gcp
 
 import (
 	"cloud.google.com/go/storage"
@@ -10,13 +10,13 @@ import (
 	"time"
 )
 
-type GoogleCloudStorage struct {
-	lockAquired bool
-	bucket      string
+type Storage struct {
+	lockAcquired bool
+	bucket       string
 	lockFile    string
 }
 
-func (gs *GoogleCloudStorage) LockFileExists() bool {
+func (gs *Storage) LockFileExists() bool {
 	ctx := context.Background()
 	obj := gs.objHandle(ctx)
 	r, err := obj.NewReader(ctx)
@@ -27,7 +27,7 @@ func (gs *GoogleCloudStorage) LockFileExists() bool {
 	return true
 }
 
-func (gs *GoogleCloudStorage) objHandle(ctx context.Context) *storage.ObjectHandle {
+func (gs *Storage) objHandle(ctx context.Context) *storage.ObjectHandle {
 	client, err := storage.NewClient(ctx)
 	if err != nil {
 		panic(err)
@@ -35,7 +35,7 @@ func (gs *GoogleCloudStorage) objHandle(ctx context.Context) *storage.ObjectHand
 	return client.Bucket(gs.bucket).Object(gs.lockFile)
 }
 
-func (gs *GoogleCloudStorage) Lock() {
+func (gs *Storage) Lock() {
 	ctx := context.Background()
 	obj := gs.objHandle(ctx)
 	w := obj.If(storage.Conditions{DoesNotExist: true}).NewWriter(ctx)
@@ -47,10 +47,10 @@ func (gs *GoogleCloudStorage) Lock() {
 		log.Debugf("could not acquire lock: %v", err)
 		return
 	}
-	gs.lockAquired = true
+	gs.lockAcquired = true
 }
 
-func (gs *GoogleCloudStorage) GetLockContent() (string, error) {
+func (gs *Storage) GetLockContent() (string, error) {
 	ctx := context.Background()
 	obj := gs.objHandle(ctx)
 	r, err := obj.NewReader(ctx)
@@ -69,19 +69,19 @@ func (gs *GoogleCloudStorage) GetLockContent() (string, error) {
 	return buf.String(), nil
 }
 
-func (gs *GoogleCloudStorage) HasLock() bool {
-	return gs.lockAquired
+func (gs *Storage) HasLock() bool {
+	return gs.lockAcquired
 }
 
-func (gs *GoogleCloudStorage) DeleteLock() {
+func (gs *Storage) DeleteLock() {
 	ctx := context.Background()
 	obj := gs.objHandle(ctx)
 	if err := obj.Delete(ctx); err != nil {
 		log.Errorf("DeleteLock(): %v", err)
 	}
-	gs.lockAquired = false
+	gs.lockAcquired = false
 }
 
-func NewGoogleCloudStorage(bucket string, lockFile string) GoogleCloudStorage {
-	return GoogleCloudStorage{false, bucket, lockFile}
+func NewStorage(bucket string, lockFile string) Storage {
+	return Storage{false, bucket, lockFile}
 }

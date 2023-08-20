@@ -11,9 +11,9 @@ import (
 func main() {
 
 	var wg sync.WaitGroup
-	wg.Add(5)
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 20; i++ {
+		wg.Add(1)
 		go newStorageDoLock(&wg)
 	}
 
@@ -23,7 +23,7 @@ func main() {
 
 func newStorageDoLock(wg *sync.WaitGroup) {
 	defer wg.Done()
-	gs := cloudstorage.NewGoogleCloudStorage("tyler-lockett", "leader.txt")
+	gs := cloudstorage.NewStorage("tyler-lockett", "leader.txt")
 	//gs := local.NewLocalStorage("leader.txt")
 
 	if leader := lock.Lock(&gs); leader {
